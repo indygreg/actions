@@ -1,0 +1,98 @@
+name: Build and Test Rust Workspace
+on:
+  workflow_call:
+    inputs:
+      actions_repo:
+        description: indygreg/actions repo
+        type: string
+        default: "indygreg/actions"
+      actions_ref:
+        description: Git commit, tag, or ref of {{actions_repo}} to use
+        type: string
+        required: true
+      msrv:
+        description: Minimum Rust version to install and test
+        type: string
+      sccache_s3_bucket:
+        description: S3 bucket to use for sccache
+        type: string
+        required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        rust_toolchain:
+          - 'stable'
+          - 'beta'
+          - 'nightly'
+          - ${{ inputs.msrv }}
+        target:
+          - os: 'ubuntu-22.04'
+            triple: 'x86_64-unknown-linux-gnu'
+          - os: 'macos-12'
+            triple: 'x86_64-apple-darwin'
+          - os: 'windows-2022'
+            triple: 'x86_64-pc-windows-msvc'
+    continue-on-error: ${{ matrix.rust_toolchain == 'nightly' }}
+    runs-on: ${{ matrix.target.os }}
+    env:
+      IN_CI: '1'
+      AWS_REGION: us-west-2
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: always
+      SCCACHE_BUCKET: ${{ inputs.sccache_s3_bucket }}
+      SCCACHE_S3_USE_SSL: '1'
+      # Prevent sccache server from stopping due to inactivity.
+      SCCACHE_IDLE_TIMEOUT: '0'
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v3
+
+      - name: Checkout actions repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.actions_repo }}
+          ref: ${{ inputs.actions_ref }}
+          path: indygreg-actions
+
+      - name: Conditionally Enable sccache
+        shell: bash
+        run: |
+          if [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            echo "enabling sccache"
+            echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          fi
+
+      - uses: ./indygreg-actions/rust-bootstrap
+        with:
+          rust_toolchain: ${{ matrix.rust_toolchain }}
+          rust_target: ${{ matrix.target_triple }}
+          just_bootstrap: true
+
+      - name: Build Workspace
+        run: |
+          rustc --version
+          cargo build --workspace
+          cargo nextest run --no-run --workspace
+
+      - name: Test Workspace
+        run: |
+          cargo nextest run --no-fail-fast --success-output immediate-final --workspace
+
+      - uses: actions-rs/clippy@master
+        if: ${{ matrix.rust_toolchain == 'stable' || matrix.rust_toolchain == 'beta' }}
+        with:
+          args: --workspace
+
+      - name: Stop sccache
+        run: |
+          sccache --stop-server

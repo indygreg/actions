@@ -1,0 +1,103 @@
+name: Bootstrap Rust
+description: Configures the system environment for building Rust
+inputs:
+  rust_toolchain:
+    description: rustup toolchain to install
+    default: stable
+    required: false
+  rust_target:
+    description: rust target triple to install
+    required: true
+  just_bootstrap:
+    description: whether to invoke a `just actions-bootstrap-rust-<os>` when running
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@v1
+      with:
+        toolchain: ${{ inputs.rust_toolchain }}
+        targets: ${{ inputs.rust_target }}
+        components: clippy
+
+    - name: Install Tools (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/casey/just/releases/download/1.1.1/just-1.1.1-x86_64-unknown-linux-musl.tar.gz \
+          ee7bf76941e8d7a41bab6716390a293e381a4a32bc46ad4d9d112f540aad34ba \
+          just.tar.gz
+        tar -xzf just.tar.gz just
+        mv just /usr/local/bin/just
+        rm just*
+
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/mozilla/sccache/releases/download/v0.3.3/sccache-v0.3.3-x86_64-unknown-linux-musl.tar.gz \
+          427bd2151a1b01cd9b094d842e22c445b30f3c645f171a9a62ea55270f06bf23 \
+          sccache.tar.gz
+        tar -xvzf sccache.tar.gz
+        mv sccache-v0.3.3-x86_64-unknown-linux-musl/sccache /home/runner/.cargo/bin/sccache
+        rm -rf sccache*
+        chmod +x /home/runner/.cargo/bin/sccache
+
+    - name: Install macOS
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/casey/just/releases/download/1.1.1/just-1.1.1-x86_64-apple-darwin.tar.gz \
+          afdc9eed21fdc3eedc6e853715232b982cd167d63b741afaf47462e7c61bfd83 \
+          just.tar.gz
+        tar -xzf just.tar.gz just
+        mv just /usr/local/bin/just
+        rm just*
+
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/mozilla/sccache/releases/download/v0.3.3/sccache-v0.3.3-x86_64-apple-darwin.tar.gz \
+          e68aa0e2716e9cceff7912e09d8028df34cd63d8d60cae832a2d5f5c94da1828 \
+          sccache.tar.gz
+        tar -xvzf sccache.tar.gz
+        mv sccache-v0.3.3-x86_64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
+        rm -rf sccache*
+        chmod +x /Users/runner/.cargo/bin/sccache
+
+    - name: Install Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -URI https://github.com/casey/just/releases/download/1.1.1/just-1.1.1-x86_64-pc-windows-msvc.zip -OutFile just.zip
+        (Get-FileHash .\just.zip).hash -eq "446e6091b2aa2b40bc57857f1104cfe4153e757379141ae5ded1dec3da59c10b"
+        Expand-Archive -Path just.zip -DestinationPath c:/temp
+        Move-Item c:/temp/just.exe c:/Users/runneradmin/.cargo/bin/just.exe
+
+        Invoke-WebRequest -URI https://github.com/mozilla/sccache/releases/download/v0.3.3/sccache-v0.3.3-x86_64-pc-windows-msvc.tar.gz -OutFile sccache.tar.gz
+        (Get-FileHash .\sccache.tar.gz).hash -eq "b37b55b6e45737562450a98cd4e5c91e58540febdbbda5c575acf80314a2b3ea"
+        tar -C c:/temp -xvzf sccache.tar.gz
+        Move-Item c:/temp/sccache-v0.3.3-x86_64-pc-windows-msvc/sccache.exe C:/Users/runneradmin/.cargo/bin/sccache.exe
+
+    - uses: taiki-e/install-action@v1
+      with:
+        tool: nextest
+
+    - name: Bootstrap Environment (Linux)
+      if: runner.os == 'Linux' && inputs.just_bootstrap
+      shell: bash
+      run: |
+        just actions-bootstrap-rust-linux
+
+    - name: Bootstrap Environment (macOS)
+      if: runner.os == 'macOS' && inputs.just_bootstrap
+      shell: bash
+      run: |
+        just actions-bootstrap-rust-macos
+
+    - name: Bootstrap Environment (Windows)
+      if: runner.os == 'Windows' && inputs.just_bootstrap
+      shell: pwsh
+      run: |
+        just actions-bootstrap-rust-windows
+
+    - name: Start sccache
+      shell: bash
+      run: |
+        sccache --start-server
