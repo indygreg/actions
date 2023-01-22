@@ -136,19 +136,12 @@ jobs:
           cp target/${{ matrix.target.triple }}/release/${{ inputs.bin }}* upload/
           sccache --stop-server
 
-      - name: Upload (non-Windows)
-        if: runner.os != 'Windows'
+      - name: Upload
         uses: actions/upload-artifact@v3
         with:
           name: exe-${{ inputs.bin }}-${{ matrix.target.triple }}
-          path: upload/${{ inputs.bin }}
-
-      - name: Upload (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v3
-        with:
-          name: exe-${{ inputs.bin }}-${{ matrix.target.triple }}
-          path: upload/${{ inputs.bin }}.exe
+          path: upload/${{ inputs.bin }}*
+          if-no-files-found: error
 
   macos-universal:
     needs:
@@ -180,7 +173,8 @@ jobs:
           fi
 
       - name: Upload Universal Executable
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: exe-${{ inputs.bin }}-macos-universal
           path: uploads/${{ inputs.bin }}
+          if-no-files-found: error
