@@ -95,12 +95,6 @@ jobs:
           rust_target: ${{ matrix.target.triple }}
           just_bootstrap: ${{ inputs.just_bootstrap }}
 
-      - uses: actions-rs/install@v0.1
-        if: matrix.target.cross
-        with:
-          crate: cross
-          version: latest
-
       - name: Build
         shell: bash
         run: |

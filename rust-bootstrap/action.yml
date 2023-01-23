@@ -40,6 +40,14 @@ runs:
         rm -rf sccache*
         chmod +x /home/runner/.cargo/bin/sccache
 
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/cross-rs/cross/releases/download/v0.2.4/cross-x86_64-unknown-linux-musl.tar.gz \
+          7ed556a4f3d68adbf679724b839853393d44c86321c4cf0636e8aef5610be556 \
+          cross.tar.gz
+        tar -xvzf cross.tar.gz
+        mv cross cross-util /home/runner/.cargo/bin/
+        rm -rf cross*
+
     - name: Install macOS
       if: runner.os == 'macOS'
       shell: bash
