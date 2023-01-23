@@ -87,6 +87,7 @@ jobs:
           if [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
             echo "enabling sccache"
             echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+            echo "CROSS_CONFIG=$(pwd)/indygreg-actions/Cross.toml" >> $GITHUB_ENV
           fi
 
       - uses: ./indygreg-actions/rust-bootstrap
@@ -94,6 +95,7 @@ jobs:
           rust_toolchain: stable
           rust_target: ${{ matrix.target.triple }}
           just_bootstrap: ${{ inputs.just_bootstrap }}
+          cross_image: "1"
 
       - name: Build
         shell: bash

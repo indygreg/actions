@@ -10,6 +10,10 @@ inputs:
     required: true
   just_bootstrap:
     description: whether to invoke a `just actions-bootstrap-rust-<os>` when running
+  cross_image:
+    description: whether to build a container image for cross
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -104,6 +108,19 @@ runs:
       shell: pwsh
       run: |
         just actions-bootstrap-rust-windows
+
+    - name: Build Cross Container Image
+      if: inputs.cross_image && inputs.rust_target == 'aarch64-unknown-linux-musl'
+      shell: bash
+      run: |
+        cat > cross.Dockerfile <<EOF
+        FROM ghcr.io/cross-rs/aarch64-unknown-linux-musl:main
+        ADD sccache /usr/local/bin/sccache
+        ENV RUSTC_WRAPPER="/usr/local/bin/sccache"
+        EOF
+
+        docker build -f cross.Dockerfile --tag cross-aarch64-unknown-linux-musl:sccache /home/runner/.cargo/bin
+        rm cross.Dockerfile
 
     - name: Start sccache
       shell: bash

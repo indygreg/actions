@@ -1,0 +1,16 @@
+[build.env]
+passthrough = [
+    "AWS_REGION",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "SCCACHE_BUCKET",
+    "SCCACHE_S3_USE_SSL",
+    "SCCACHE_IDLE_TIMEOUT",
+    "CARGO_INCREMENTAL",
+]
+volumes = [
+    "/home/runner/.cargo/bin/sccache:/usr/local/bin/sccache",
+]
+
+[target.aarch64-unknown-linux-musl]
+image = "cross-aarch64-unknown-linux-musl:sccache"
