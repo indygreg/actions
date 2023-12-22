@@ -17,6 +17,10 @@ on:
         description: S3 bucket to use for sccache
         type: string
         required: true
+      no_default_features:
+        description: Whether to perform a build with --no-default-features
+        type: boolean
+        default: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -83,6 +87,12 @@ jobs:
           rustc --version
           cargo build --workspace
           cargo nextest run --no-run --workspace
+
+      - name: Build Workspace (No Default Features)
+        if: ${{ inputs.no_default_features }}
+        run: |
+          cargo build --workspace --no-default-features
+          cargo nextest run --no-run --workspace --no-default-features
 
       - name: Test Workspace
         run: |
