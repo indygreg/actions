@@ -142,8 +142,23 @@ jobs:
   macos-universal:
     needs:
       - build
-    runs-on: 'macos-12'
+    runs-on: ubuntu-latest
     steps:
+      - name: Checkout actions repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.actions_repo }}
+          ref: ${{ inputs.actions_ref }}
+          path: indygreg-actions
+
+      - name: Download rcodesign
+        run: |
+          python3 indygreg-actions/rust-bootstrap/secure_download.py \
+            https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.26.0/apple-codesign-0.26.0-x86_64-unknown-linux-musl.tar.gz \
+            cc2458901b2e93e21f1a4cc19ecc19a71dc2867d4d5f3f974091dac9ee536b1c \
+            rcodesign.tar.gz
+          tar -xvz --strip-components=1 -f rcodesign.tar.gz
+
       - name: Download aarch64 executable
         uses: actions/download-artifact@v3
         with:
@@ -159,9 +174,8 @@ jobs:
       - name: Produce Universal Binary
         run: |
           mkdir -p uploads
-          lipo ${{inputs.bin}}-x86-64/${{inputs.bin}} ${{inputs.bin}}-aarch64/${{inputs.bin}} -create -output uploads/${{inputs.bin}}
+          ./rcodesign macho-universal-create --output uploads/${{inputs.bin}} ${{inputs.bin}}-x86-64/${{inputs.bin}} ${{inputs.bin}}-aarch64/${{inputs.bin}}
           chmod +x uploads/${{inputs.bin}}
-          lipo uploads/${{inputs.bin}} -info
 
           # There might be a COPYING file with licensing info. If so, preserve it.
           if [ -e "${{inputs.bin}}-x86-64/COPYING" ]; then
