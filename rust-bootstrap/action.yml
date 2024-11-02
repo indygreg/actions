@@ -87,7 +87,7 @@ runs:
         tar -C c:/temp -xvzf sccache.tar.gz
         Move-Item c:/temp/sccache-v0.8.2-x86_64-pc-windows-msvc/sccache.exe C:/Users/runneradmin/.cargo/bin/sccache.exe
 
-    - uses: taiki-e/install-action@v1
+    - uses: taiki-e/install-action@v2
       with:
         tool: nextest
 
