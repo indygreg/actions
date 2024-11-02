@@ -36,11 +36,11 @@ runs:
         rm just*
 
         python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/mozilla/sccache/releases/download/v0.3.3/sccache-v0.3.3-x86_64-unknown-linux-musl.tar.gz \
-          427bd2151a1b01cd9b094d842e22c445b30f3c645f171a9a62ea55270f06bf23 \
+          https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-x86_64-unknown-linux-musl.tar.gz \
+          ecda4ddc89a49f1ec6f35bdce5ecbf6f205b399a680d11119d4ce9f6d962104e \
           sccache.tar.gz
         tar -xvzf sccache.tar.gz
-        mv sccache-v0.3.3-x86_64-unknown-linux-musl/sccache /home/runner/.cargo/bin/sccache
+        mv sccache-v0.8.2-x86_64-unknown-linux-musl/sccache /home/runner/.cargo/bin/sccache
         rm -rf sccache*
         chmod +x /home/runner/.cargo/bin/sccache
 
@@ -65,11 +65,11 @@ runs:
         rm just*
 
         python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/mozilla/sccache/releases/download/v0.3.3/sccache-v0.3.3-x86_64-apple-darwin.tar.gz \
-          e68aa0e2716e9cceff7912e09d8028df34cd63d8d60cae832a2d5f5c94da1828 \
+          https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-x86_64-apple-darwin.tar.gz \
+          fcbe1b76356f7183cee0b5bc150c0583abc01a5c42e9b2be94e9d17ed7dca3a4 \
           sccache.tar.gz
         tar -xvzf sccache.tar.gz
-        mv sccache-v0.3.3-x86_64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
+        mv sccache-v0.8.2-x86_64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
         rm -rf sccache*
         chmod +x /Users/runner/.cargo/bin/sccache
 
@@ -82,10 +82,10 @@ runs:
         Expand-Archive -Path just.zip -DestinationPath c:/temp
         Move-Item c:/temp/just.exe c:/Users/runneradmin/.cargo/bin/just.exe
 
-        Invoke-WebRequest -URI https://github.com/mozilla/sccache/releases/download/v0.3.3/sccache-v0.3.3-x86_64-pc-windows-msvc.tar.gz -OutFile sccache.tar.gz
-        (Get-FileHash .\sccache.tar.gz).hash -eq "b37b55b6e45737562450a98cd4e5c91e58540febdbbda5c575acf80314a2b3ea"
+        Invoke-WebRequest -URI https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-x86_64-pc-windows-msvc.tar.gz -OutFile sccache.tar.gz
+        (Get-FileHash .\sccache.tar.gz).hash -eq "de5e9f66bb8a6bbdf0e28cb8a086a8d12699af796bf70bcd9dc40d80715bf9b8"
         tar -C c:/temp -xvzf sccache.tar.gz
-        Move-Item c:/temp/sccache-v0.3.3-x86_64-pc-windows-msvc/sccache.exe C:/Users/runneradmin/.cargo/bin/sccache.exe
+        Move-Item c:/temp/sccache-v0.8.2-x86_64-pc-windows-msvc/sccache.exe C:/Users/runneradmin/.cargo/bin/sccache.exe
 
     - uses: taiki-e/install-action@v1
       with:
