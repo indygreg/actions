@@ -59,10 +59,10 @@ jobs:
       SCCACHE_IDLE_TIMEOUT: '0'
     steps:
       - name: Checkout main repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout actions repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ${{ inputs.actions_repo }}
           ref: ${{ inputs.actions_ref }}
