@@ -52,8 +52,8 @@ runs:
         mv cross cross-util /home/runner/.cargo/bin/
         rm -rf cross*
 
-    - name: Install macOS
-      if: runner.os == 'macOS'
+    - name: Install macOS (x86-64)
+      if: runner.os == 'macOS' && runner.arch == 'X64'
       shell: bash
       run: |
         python3 ${GITHUB_ACTION_PATH}/secure_download.py \
@@ -70,6 +70,27 @@ runs:
           sccache.tar.gz
         tar -xvzf sccache.tar.gz
         mv sccache-v0.8.2-x86_64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
+        rm -rf sccache*
+        chmod +x /Users/runner/.cargo/bin/sccache
+
+    - name: Install macOS (aarch64)
+      if: runner.os == 'macOS' && runner.arch == 'ARM64'
+      shell: bash
+      run: |
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-aarch64-apple-darwin.tar.gz \
+          e7a824c4d92cdea270b61474bd48e851aedc4c65f9c5245c12b32df6de9b536f \
+          just.tar.gz
+        tar -xzf just.tar.gz just
+        mv just /usr/local/bin/just
+        rm just*
+
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/mozilla/sccache/releases/download/v0.8.2/sccache-v0.8.2-aarch64-apple-darwin.tar.gz \
+          32604da614ce679623a8de0d38eab91b87431d59f3344c5523c82e1b6e85ffc4 \
+          sccache.tar.gz
+        tar -xvzf sccache.tar.gz
+        mv sccache-v0.8.2-aarch64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
         rm -rf sccache*
         chmod +x /Users/runner/.cargo/bin/sccache
 
