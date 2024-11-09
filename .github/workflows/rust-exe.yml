@@ -133,7 +133,7 @@ jobs:
           sccache --stop-server
 
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: exe-${{ inputs.bin }}-${{ matrix.target.triple }}
           path: upload/${{ inputs.bin }}*
@@ -160,13 +160,13 @@ jobs:
           tar -xvz --strip-components=1 -f rcodesign.tar.gz
 
       - name: Download aarch64 executable
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: exe-${{ inputs.bin }}-aarch64-apple-darwin
           path: ${{ inputs.bin }}-aarch64
 
       - name: Download x86-64 executable
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: exe-${{ inputs.bin }}-x86_64-apple-darwin
           path: ${{ inputs.bin }}-x86-64
@@ -183,7 +183,7 @@ jobs:
           fi
 
       - name: Upload Universal Executable
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: exe-${{ inputs.bin }}-macos-universal
           path: uploads/${{ inputs.bin }}
