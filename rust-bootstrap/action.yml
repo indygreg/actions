@@ -146,4 +146,4 @@ runs:
     - name: Start sccache
       shell: bash
       run: |
-        sccache --start-server
+        sccache --start-server || true

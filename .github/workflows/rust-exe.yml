@@ -130,7 +130,7 @@ jobs:
 
           mkdir upload
           cp target/${{ matrix.target.triple }}/release/${{ inputs.bin }}* upload/
-          sccache --stop-server
+          sccache --stop-server || true
 
       - name: Upload
         uses: actions/upload-artifact@v4

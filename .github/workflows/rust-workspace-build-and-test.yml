@@ -107,4 +107,4 @@ jobs:
 
       - name: Stop sccache
         run: |
-          sccache --stop-server
+          sccache --stop-server || true
