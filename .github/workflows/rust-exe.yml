@@ -15,15 +15,19 @@ on:
         required: true
         type: string
       extra_build_args_linux:
-        description: Extra arguments to pass to `cargo build` on Linux
+        description: Extra arguments to pass to `cargo build` on all Linux targets
+        required: false
+        type: string
+      extra_build_args_linux_gnu:
+        description: Extra arguments to pass to `cargo build` on Linux GNU (glibc) targets only
         required: false
         type: string
       extra_build_args_macos:
-        description: Extra arguments to pass to `cargo build` on Windows
+        description: Extra arguments to pass to `cargo build` on macOS
         required: false
         type: string
       extra_build_args_windows:
-        description: Extra arguments to pass to `cargo build` on macOS
+        description: Extra arguments to pass to `cargo build` on Windows
         required: false
         type: string
       just_bootstrap:
@@ -51,6 +55,8 @@ jobs:
             cross: true
           - os: 'ubuntu-22.04'
             triple: 'x86_64-unknown-linux-musl'
+          - os: 'ubuntu-22.04'
+            triple: 'x86_64-unknown-linux-gnu'
           - os: 'macos-15'
             triple: 'aarch64-apple-darwin'
           - os: 'macos-13'
@@ -112,9 +118,19 @@ jobs:
             CARGO=cargo
           fi
 
+          EXTRA_BUILD_ARGS=""
           case "${{ matrix.target.triple }}" in
-            *linux*)
-              EXTRA_BUILD_ARGS=${{ inputs.extra_build_args_linux }}
+            *unknown-linux-gnu)
+              if [ -n "${{ inputs.extra_build_args_linux_gnu }}" ]; then
+                EXTRA_BUILD_ARGS="${{ inputs.extra_build_args_linux_gnu }}"
+              elif [ -n "${{ inputs.extra_build_args_linux }}" ]; then
+                EXTRA_BUILD_ARGS="${{ inputs.extra_build_args_linux }}"
+              fi
+              ;;
+            *unknown-linux-musl)
+              if [ -n "${{ inputs.extra_build_args_linux }}" ]; then
+                EXTRA_BUILD_ARGS="${{ inputs.extra_build_args_linux }}"
+              fi
               ;;
             *apple-darwin*)
               EXTRA_BUILD_ARGS=${{ inputs.extra_build_args_macos }}
