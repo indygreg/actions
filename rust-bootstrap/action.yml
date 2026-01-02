@@ -22,66 +22,9 @@ runs:
     - name: Install sccache-cache
       uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
 
-    - name: Install Tools (Linux aarch64)
-      if: runner.os == 'Linux' && runner.arch == 'ARM64'
-      shell: bash
-      run: |
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-aarch64-unknown-linux-musl.tar.gz \
-          bb3886b15e2cbcb9c0eb19956297d36de4eaef45b89d3f5fa5d1fc4ed3b5b51d \
-          just.tar.gz
-        tar -xzf just.tar.gz just
-        mv just /usr/local/bin/just
-        rm just*
-
-    - name: Install Tools (Linux x86-64)
-      if: runner.os == 'Linux' && runner.arch == 'X64'
-      shell: bash
-      run: |
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-x86_64-unknown-linux-musl.tar.gz \
-          bc7c9f377944f8de9cd0418b11d2955adebfa25a488c0b5e3dd2d2c0e9d732da \
-          just.tar.gz
-        tar -xzf just.tar.gz just
-        mv just /usr/local/bin/just
-        rm just*
-
-    - name: Install macOS (x86-64)
-      if: runner.os == 'macOS' && runner.arch == 'X64'
-      shell: bash
-      run: |
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-x86_64-apple-darwin.tar.gz \
-          30aacf9cbf021c2ff36fff5a05c800360e2020e527916e1c0960452ef5a8568c \
-          just.tar.gz
-        tar -xzf just.tar.gz just
-        mv just /usr/local/bin/just
-        rm just*
-
-    - name: Install macOS (aarch64)
-      if: runner.os == 'macOS' && runner.arch == 'ARM64'
-      shell: bash
-      run: |
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-aarch64-apple-darwin.tar.gz \
-          e7a824c4d92cdea270b61474bd48e851aedc4c65f9c5245c12b32df6de9b536f \
-          just.tar.gz
-        tar -xzf just.tar.gz just
-        mv just /usr/local/bin/just
-        rm just*
-
-    - name: Install Windows
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        Invoke-WebRequest -URI https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-x86_64-pc-windows-msvc.zip -OutFile just.zip
-        (Get-FileHash .\just.zip).hash -eq "7c0d56a07d51ddc4cdc2bd7d1e7e0223ada0281bc06bd482b8918102acf037fe"
-        Expand-Archive -Path just.zip -DestinationPath c:/temp
-        Move-Item c:/temp/just.exe c:/Users/runneradmin/.cargo/bin/just.exe
-
     - uses: taiki-e/install-action@v2
       with:
-        tool: nextest
+        tool: just,nextest
 
     - name: Bootstrap Environment (Linux)
       if: runner.os == 'Linux' && inputs.just_bootstrap
