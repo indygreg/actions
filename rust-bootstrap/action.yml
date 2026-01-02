@@ -10,10 +10,6 @@ inputs:
     required: true
   just_bootstrap:
     description: whether to invoke a `just actions-bootstrap-rust-<os>` when running
-  cross_image:
-    description: whether to build a container image for cross
-    required: false
-    default: ""
 runs:
   using: composite
   steps:
@@ -23,8 +19,23 @@ runs:
         targets: ${{ inputs.rust_target }}
         components: clippy
 
-    - name: Install Tools (Linux)
-      if: runner.os == 'Linux'
+    - name: Install sccache-cache
+      uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
+
+    - name: Install Tools (Linux aarch64)
+      if: runner.os == 'Linux' && runner.arch == 'ARM64'
+      shell: bash
+      run: |
+        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
+          https://github.com/casey/just/releases/download/1.36.0/just-1.36.0-aarch64-unknown-linux-musl.tar.gz \
+          bb3886b15e2cbcb9c0eb19956297d36de4eaef45b89d3f5fa5d1fc4ed3b5b51d \
+          just.tar.gz
+        tar -xzf just.tar.gz just
+        mv just /usr/local/bin/just
+        rm just*
+
+    - name: Install Tools (Linux x86-64)
+      if: runner.os == 'Linux' && runner.arch == 'X64'
       shell: bash
       run: |
         python3 ${GITHUB_ACTION_PATH}/secure_download.py \
@@ -34,23 +45,6 @@ runs:
         tar -xzf just.tar.gz just
         mv just /usr/local/bin/just
         rm just*
-
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-v0.10.0-x86_64-unknown-linux-musl.tar.gz \
-          1fbb35e135660d04a2d5e42b59c7874d39b3deb17de56330b25b713ec59f849b \
-          sccache.tar.gz
-        tar -xvzf sccache.tar.gz
-        mv sccache-v0.10.0-x86_64-unknown-linux-musl/sccache /home/runner/.cargo/bin/sccache
-        rm -rf sccache*
-        chmod +x /home/runner/.cargo/bin/sccache
-
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/cross-rs/cross/releases/download/v0.2.4/cross-x86_64-unknown-linux-musl.tar.gz \
-          7ed556a4f3d68adbf679724b839853393d44c86321c4cf0636e8aef5610be556 \
-          cross.tar.gz
-        tar -xvzf cross.tar.gz
-        mv cross cross-util /home/runner/.cargo/bin/
-        rm -rf cross*
 
     - name: Install macOS (x86-64)
       if: runner.os == 'macOS' && runner.arch == 'X64'
@@ -64,15 +58,6 @@ runs:
         mv just /usr/local/bin/just
         rm just*
 
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-v0.10.0-x86_64-apple-darwin.tar.gz \
-          6d4a77802ec83607478df7b6338be28171e65e58a38a49497ebec1fbb300fce4 \
-          sccache.tar.gz
-        tar -xvzf sccache.tar.gz
-        mv sccache-v0.10.0-x86_64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
-        rm -rf sccache*
-        chmod +x /Users/runner/.cargo/bin/sccache
-
     - name: Install macOS (aarch64)
       if: runner.os == 'macOS' && runner.arch == 'ARM64'
       shell: bash
@@ -85,15 +70,6 @@ runs:
         mv just /usr/local/bin/just
         rm just*
 
-        python3 ${GITHUB_ACTION_PATH}/secure_download.py \
-          https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-v0.10.0-aarch64-apple-darwin.tar.gz \
-          5aba39252e2efa26bd76144f87ac59787d60fe567ab785e27e2a8c8190892eac \
-          sccache.tar.gz
-        tar -xvzf sccache.tar.gz
-        mv sccache-v0.10.0-aarch64-apple-darwin/sccache /Users/runner/.cargo/bin/sccache
-        rm -rf sccache*
-        chmod +x /Users/runner/.cargo/bin/sccache
-
     - name: Install Windows
       if: runner.os == 'Windows'
       shell: pwsh
@@ -102,11 +78,6 @@ runs:
         (Get-FileHash .\just.zip).hash -eq "7c0d56a07d51ddc4cdc2bd7d1e7e0223ada0281bc06bd482b8918102acf037fe"
         Expand-Archive -Path just.zip -DestinationPath c:/temp
         Move-Item c:/temp/just.exe c:/Users/runneradmin/.cargo/bin/just.exe
-
-        Invoke-WebRequest -URI https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-v0.10.0-x86_64-pc-windows-msvc.tar.gz -OutFile sccache.tar.gz
-        (Get-FileHash .\sccache.tar.gz).hash -eq "0d499d0f73fa575f805df014af6ece49b840195fb7de0c552230899d77186ceb"
-        tar -C c:/temp -xvzf sccache.tar.gz
-        Move-Item c:/temp/sccache-v0.10.0-x86_64-pc-windows-msvc/sccache.exe C:/Users/runneradmin/.cargo/bin/sccache.exe
 
     - uses: taiki-e/install-action@v2
       with:
@@ -129,19 +100,6 @@ runs:
       shell: pwsh
       run: |
         just actions-bootstrap-rust-windows
-
-    - name: Build Cross Container Image
-      if: inputs.cross_image && inputs.rust_target == 'aarch64-unknown-linux-musl'
-      shell: bash
-      run: |
-        cat > cross.Dockerfile <<EOF
-        FROM ghcr.io/cross-rs/aarch64-unknown-linux-musl:main
-        ADD sccache /usr/local/bin/sccache
-        ENV RUSTC_WRAPPER="/usr/local/bin/sccache"
-        EOF
-
-        docker build -f cross.Dockerfile --tag cross-aarch64-unknown-linux-musl:sccache /home/runner/.cargo/bin
-        rm cross.Dockerfile
 
     - name: Start sccache
       shell: bash

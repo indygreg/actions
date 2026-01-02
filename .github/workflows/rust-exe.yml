@@ -50,11 +50,12 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - os: 'ubuntu-24.04'
+          - os: 'ubuntu-24.04-arm'
             triple: 'aarch64-unknown-linux-musl'
-            cross: true
           - os: 'ubuntu-24.04'
             triple: 'x86_64-unknown-linux-musl'
+          - os: 'ubuntu-24.04-arm'
+            triple: 'aarch64-unknown-linux-gnu'
           - os: 'ubuntu-24.04'
             triple: 'x86_64-unknown-linux-gnu'
           - os: 'macos-15'
@@ -93,7 +94,6 @@ jobs:
           if [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
             echo "enabling sccache"
             echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-            echo "CROSS_CONFIG=$(pwd)/indygreg-actions/Cross.toml" >> $GITHUB_ENV
           fi
 
       - uses: ./indygreg-actions/rust-bootstrap
@@ -101,7 +101,6 @@ jobs:
           rust_toolchain: stable
           rust_target: ${{ matrix.target.triple }}
           just_bootstrap: ${{ inputs.just_bootstrap }}
-          cross_image: "1"
 
       - name: Build
         shell: bash
@@ -110,12 +109,6 @@ jobs:
             export MACOSX_DEPLOYMENT_TARGET=11.0
           elif [ "${{ matrix.target.triple }}" = "x86_64-apple-darwin" ]; then
             export MACOSX_DEPLOYMENT_TARGET=10.9
-          fi
-
-          if [ -n "${{ matrix.target.cross }}" ]; then
-            CARGO=cross
-          else
-            CARGO=cargo
           fi
 
           EXTRA_BUILD_ARGS=""
@@ -142,7 +135,7 @@ jobs:
               ;;
           esac
 
-          $CARGO build --release --bin ${{ inputs.bin }} --target ${{ matrix.target.triple }} ${EXTRA_BUILD_ARGS}
+          cargo build --release --bin ${{ inputs.bin }} --target ${{ matrix.target.triple }} ${EXTRA_BUILD_ARGS}
 
           mkdir upload
           cp target/${{ matrix.target.triple }}/release/${{ inputs.bin }}* upload/
