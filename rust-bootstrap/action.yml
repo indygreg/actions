@@ -13,10 +13,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: dtolnay/rust-toolchain@v1
+    - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c
       with:
         toolchain: ${{ inputs.rust_toolchain }}
-        targets: ${{ inputs.rust_target }}
+        target: ${{ inputs.rust_target }}
         components: clippy
 
     - name: Install sccache-cache
