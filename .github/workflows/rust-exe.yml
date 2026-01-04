@@ -101,6 +101,7 @@ jobs:
         with:
           rust_toolchain: stable
           rust_target: ${{ matrix.target.triple }}
+          rust_cache_key: v0
           just_bootstrap: ${{ inputs.just_bootstrap }}
 
       - name: Build

@@ -8,6 +8,9 @@ inputs:
   rust_target:
     description: rust target triple to install
     required: true
+  rust_cache_key:
+    description: String to influence Rust toolchain cache key
+    default: ""
   just_bootstrap:
     description: whether to invoke a `just actions-bootstrap-rust-<os>` when running
 runs:
@@ -18,6 +21,7 @@ runs:
         toolchain: ${{ inputs.rust_toolchain }}
         target: ${{ inputs.rust_target }}
         components: clippy
+        cache-key: ${{ inputs.rust_cache_key }}
 
     - name: Install sccache-cache
       uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
