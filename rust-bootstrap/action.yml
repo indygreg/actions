@@ -25,6 +25,9 @@ runs:
 
     - name: Install sccache-cache
       uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
+      with:
+        # Work around lack of macOS x86-64 binary. https://github.com/mozilla/sccache/issues/2554
+        version: "v0.12.0"
 
     - uses: taiki-e/install-action@v2
       with:
